@@ -1,6 +1,6 @@
 package com.example.ragknowledgeservice.common;
 
-import com.example.ragknowledgeservice.dto.FileContent;
+import com.example.ragknowledgeservice.dto.UploadDocumentCommand;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -10,9 +10,9 @@ public class MultipartFileMapper {
     private MultipartFileMapper() {
     }
 
-    public static FileContent toFileContent(MultipartFile file) {
+    public static UploadDocumentCommand toFileContent(MultipartFile file) {
         try {
-            return new FileContent(
+            return new UploadDocumentCommand(
                 file.getOriginalFilename(),
                 file.getContentType(),
                 file.getSize(),

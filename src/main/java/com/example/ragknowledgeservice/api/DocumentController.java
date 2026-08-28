@@ -20,12 +20,12 @@ public class DocumentController {
 
     private final DocumentService documentService;
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SavedFile> uploadDocument(@RequestPart("file") @ValidPdf MultipartFile file) {
         SavedFile savedFile = documentService.saveDocument(MultipartFileMapper.toFileContent(file));
 
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
             .location(URI.create("/api/documents/" + savedFile.getDocumentId()))
             .body(savedFile);
     }

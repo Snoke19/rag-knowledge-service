@@ -1,6 +1,6 @@
 package com.example.ragknowledgeservice.dto;
 
-public record FileContent(
+public record UploadDocumentCommand(
     String filename,
     String contentType,
     long size,
