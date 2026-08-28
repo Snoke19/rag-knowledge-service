@@ -5,9 +5,13 @@ import com.example.ragknowledgeservice.common.ValidPdf;
 import com.example.ragknowledgeservice.dto.SavedFile;
 import com.example.ragknowledgeservice.service.DocumentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,9 +20,14 @@ public class DocumentController {
 
     private final DocumentService documentService;
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SavedFile uploadDocument(@RequestPart("file") @ValidPdf MultipartFile file) {
-        return documentService.saveDocument(MultipartFileMapper.toFileContent(file));
+    public ResponseEntity<SavedFile> uploadDocument(@RequestPart("file") @ValidPdf MultipartFile file) {
+        SavedFile savedFile = documentService.saveDocument(MultipartFileMapper.toFileContent(file));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .location(URI.create("/api/documents/" + savedFile.getDocumentId()))
+            .body(savedFile);
     }
 
     @GetMapping("/documents/{id}")

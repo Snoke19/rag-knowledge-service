@@ -7,9 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 @Slf4j
-public class PdfFileValidator
-    implements ConstraintValidator<ValidPdf, MultipartFile> {
+public class PdfFileValidator implements ConstraintValidator<ValidPdf, MultipartFile> {
+
+    private static final byte[] PDF_SIGNATURE = "%PDF-".getBytes(StandardCharsets.US_ASCII);
 
     @Override
     public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
@@ -25,7 +31,21 @@ public class PdfFileValidator
             return reject(context, ValidationReason.UNSUPPORTED_FILE_TYPE);
         }
 
+        if (!hasPdfSignature(file)) {
+            return reject(context, ValidationReason.INVALID_PDF_CONTENT);
+        }
+
         return true;
+    }
+
+    private boolean hasPdfSignature(MultipartFile file) {
+        try(InputStream inputStream = file.getInputStream()) {
+            byte[] header = inputStream.readNBytes(PDF_SIGNATURE.length);
+            return Arrays.equals(header, PDF_SIGNATURE);
+        } catch (IOException exception) {
+            log.warn("Could not read uploaded file to validate PDF signature", exception);
+            return false;
+        }
     }
 
     private boolean reject(ConstraintValidatorContext context, ValidationReason reason) {

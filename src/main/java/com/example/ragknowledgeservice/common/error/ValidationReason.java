@@ -9,7 +9,8 @@ public enum ValidationReason {
 
     FILE_REQUIRED("File is required."),
     EMPTY_FILE("File must not be empty."),
-    UNSUPPORTED_FILE_TYPE("Only PDF files are supported.");
+    UNSUPPORTED_FILE_TYPE("Only PDF files are supported."),
+    INVALID_PDF_CONTENT("File content is not a valid PDF.");
 
     private final String message;
 }
