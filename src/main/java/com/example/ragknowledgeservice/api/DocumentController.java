@@ -1,21 +1,28 @@
 package com.example.ragknowledgeservice.api;
 
+import com.example.ragknowledgeservice.common.MultipartFileMapper;
+import com.example.ragknowledgeservice.common.ValidPdf;
+import com.example.ragknowledgeservice.dto.SavedFile;
+import com.example.ragknowledgeservice.service.DocumentService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class DocumentController {
 
-    @GetMapping("/documents")
-    public List<String> getDocuments() {
-        return new ArrayList<>();
+    private final DocumentService documentService;
+
+    @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public SavedFile uploadDocument(@RequestPart("file") @ValidPdf MultipartFile file) {
+        return documentService.saveDocument(MultipartFileMapper.toFileContent(file));
     }
 
     @GetMapping("/documents/{id}")
-    public String getDocuments(@PathVariable String id) {
+    public String getDocument(@PathVariable String id) {
         return "document: " + id;
     }
 
@@ -28,6 +35,4 @@ public class DocumentController {
     public String searchDocuments() {
         return "document";
     }
-
-
 }

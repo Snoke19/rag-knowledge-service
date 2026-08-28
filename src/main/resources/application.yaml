@@ -1,6 +1,10 @@
 spring:
   application:
     name: rag-knowledge-service
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 management:
   health:
@@ -17,3 +21,7 @@ management:
   endpoint:
     health:
       show-details: always
+
+logging:
+  level:
+    com.example.ragknowledgeservice: DEBUG
