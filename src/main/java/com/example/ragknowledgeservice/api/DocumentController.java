@@ -29,8 +29,5 @@ public class DocumentController {
         return "document";
     }
 
-    @PostMapping("/chat")
-    public String chatDocuments() {
-        return "document";
-    }
+
 }
