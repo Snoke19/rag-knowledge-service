@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: rag-knowledge-service
+
+management:
+  health:
+    diskspace:
+      enabled: false
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+  endpoint:
+    health:
+      show-details: always
