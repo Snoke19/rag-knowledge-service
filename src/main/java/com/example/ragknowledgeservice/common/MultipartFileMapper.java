@@ -10,13 +10,13 @@ public class MultipartFileMapper {
     private MultipartFileMapper() {
     }
 
-    public static UploadDocumentCommand toFileContent(MultipartFile file) {
+    public static UploadDocumentCommand toUploadDocumentCommand(MultipartFile file) {
         try {
             return new UploadDocumentCommand(
                 file.getOriginalFilename(),
                 file.getContentType(),
                 file.getSize(),
-                file.getBytes()
+                file.getInputStream()
             );
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read uploaded file", exception);
