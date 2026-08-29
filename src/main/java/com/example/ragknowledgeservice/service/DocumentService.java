@@ -1,8 +1,8 @@
 package com.example.ragknowledgeservice.service;
 
+import com.example.ragknowledgeservice.command.UploadDocumentCommand;
 import com.example.ragknowledgeservice.common.DocumentStatus;
 import com.example.ragknowledgeservice.dto.SavedFile;
-import com.example.ragknowledgeservice.dto.UploadDocumentCommand;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

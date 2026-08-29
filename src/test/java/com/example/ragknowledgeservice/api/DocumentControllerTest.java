@@ -1,9 +1,9 @@
 package com.example.ragknowledgeservice.api;
 
+import com.example.ragknowledgeservice.command.UploadDocumentCommand;
 import com.example.ragknowledgeservice.common.DocumentStatus;
 import com.example.ragknowledgeservice.common.MultipartFileMapper;
 import com.example.ragknowledgeservice.dto.SavedFile;
-import com.example.ragknowledgeservice.dto.UploadDocumentCommand;
 import com.example.ragknowledgeservice.handler.GlobalExceptionHandler;
 import com.example.ragknowledgeservice.service.DocumentService;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.example.ragknowledgeservice.dto;
+package com.example.ragknowledgeservice.command;
 
 import java.io.InputStream;
 
