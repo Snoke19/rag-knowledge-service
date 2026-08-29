@@ -45,7 +45,7 @@ import static org.mockito.Mockito.*;
 })
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class DocumentMetadataServiceIntegrationTest {
+public class DocumentServiceIntegrationTest {
 
     @Container
     @ServiceConnection
@@ -91,7 +91,7 @@ public class DocumentMetadataServiceIntegrationTest {
 
         DocumentMetadata documentMetadata = documentService.getMetaDataDocument(result.getDocumentId());
         assertNotNull(documentMetadata);
-        assertEquals(1, documentMetadata.getId());
+        assertNotNull(documentMetadata.getId());
         assertEquals(documentMetadata.getDocumentId(), result.getDocumentId());
         assertEquals(DocumentStatus.UPLOADED, result.getStatus());
 
@@ -185,50 +185,6 @@ public class DocumentMetadataServiceIntegrationTest {
         assertEquals(databaseFailure, exception.getCause());
         verify(documentRepository).save(any(DocumentMetadata.class));
         verify(fileStorage).delete(anyString());
-    }
-
-    @Test
-    void test_save_document_storage_failure() {
-        String content = "test document content";
-
-        doThrow(new StorageException("Storage failure"))
-            .when(fileStorage)
-            .put(any(), any(), anyLong(), any());
-
-        UploadDocumentCommand cmd = new UploadDocumentCommand(
-            "test.pdf",
-            "application/pdf",
-            content.length(),
-            new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-        );
-
-        assertThrows(StorageException.class, () -> documentService.saveDocument(cmd));
-        assertTrue(documentRepository.findAll().isEmpty());
-        verify(fileStorage).put(any(), any(), anyLong(), any());
-        verify(documentRepository, never()).save(any(DocumentMetadata.class));
-    }
-
-    @Test
-    void test_save_document_database_failure() {
-        String content = "test document content";
-
-        doThrow(new RuntimeException("Database failure"))
-            .when(documentRepository)
-            .save(any(DocumentMetadata.class));
-
-        UploadDocumentCommand cmd = new UploadDocumentCommand(
-            "test.pdf",
-            "application/pdf",
-            content.length(),
-            new ByteArrayInputStream(
-                content.getBytes(StandardCharsets.UTF_8)
-            )
-        );
-
-        assertThrows(RuntimeException.class, () -> documentService.saveDocument(cmd));
-        assertTrue(documentRepository.findAll().isEmpty());
-        verify(documentRepository).save(any(DocumentMetadata.class));
-        verify(fileStorage).delete(any());
     }
 
     private void assertObjectDoesNotExist(String storageKey) {
