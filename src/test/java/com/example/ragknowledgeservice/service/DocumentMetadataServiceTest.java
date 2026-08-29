@@ -86,6 +86,7 @@ public class DocumentMetadataServiceTest {
         assertNotNull(documentMetadata);
         assertEquals(1, documentMetadata.getId());
         assertEquals(documentMetadata.getDocumentId(), result.getDocumentId());
+        assertEquals(DocumentStatus.UPLOADED, result.getStatus());
 
         byte[] downloadedDocument = documentService.downloadDocument(result.getDocumentId());
         String documentContent = new String(downloadedDocument, StandardCharsets.UTF_8);
