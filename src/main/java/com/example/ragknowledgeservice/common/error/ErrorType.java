@@ -9,6 +9,7 @@ public enum ErrorType {
 
     INVALID_MULTIPART("https://ragknowledgeservice.example.com/problems/invalid-multipart"),
     MISSING_REQUEST_PART("https://ragknowledgeservice.example.com/problems/missing-request-part"),
+    STORAGE_ERROR("https://ragknowledgeservice.example.com/problems/storage-error"),
     VALIDATION_ERROR("https://ragknowledgeservice.example.com/problems/validation-error");
 
     private final String uri;
