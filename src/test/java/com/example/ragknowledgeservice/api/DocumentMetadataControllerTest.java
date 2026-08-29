@@ -6,6 +6,7 @@ import com.example.ragknowledgeservice.common.MultipartFileMapper;
 import com.example.ragknowledgeservice.dto.SavedFile;
 import com.example.ragknowledgeservice.handler.GlobalExceptionHandler;
 import com.example.ragknowledgeservice.service.DocumentService;
+import com.example.ragknowledgeservice.service.storage.StorageException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -204,6 +205,36 @@ public class DocumentMetadataControllerTest {
 
         assertThat(command.filename())
             .isEqualTo("company-handbook.pdf");
+    }
+
+    @Test
+    void returnsInternalServerErrorWhenStorageFails() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "company-handbook.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            "%PDF-1.4 test content".getBytes()
+        );
+
+        when(documentService.saveDocument(any())).thenThrow(new StorageException("Storage transaction failed"));
+
+        mockMvc.perform(
+                multipart("/api/documents")
+                    .file(file)
+            )
+            .andExpect(status().isInternalServerError())
+            .andExpect(
+                content().contentTypeCompatibleWith("application/problem+json")
+            )
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.title")
+                .value("Storage operation failed"))
+            .andExpect(jsonPath("$.detail")
+                .value("The document could not be stored."))
+            .andExpect(jsonPath("$.type")
+                .value(
+                    "https://ragknowledgeservice.example.com/problems/storage-error"
+                ));
     }
 
     @RestController

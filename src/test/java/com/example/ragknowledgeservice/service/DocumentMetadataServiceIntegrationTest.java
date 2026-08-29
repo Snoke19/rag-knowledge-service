@@ -11,8 +11,11 @@ import com.example.ragknowledgeservice.service.storage.StorageTransactionManager
 import com.example.ragknowledgeservice.service.storage.file_storage.FileStorage;
 import com.example.ragknowledgeservice.service.storage.file_storage.MinioFileStorage;
 import io.minio.MinioClient;
+import io.minio.StatObjectArgs;
+import io.minio.errors.ErrorResponseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -28,6 +31,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -52,6 +56,9 @@ public class DocumentMetadataServiceIntegrationTest {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private MinioClient minioClient;
 
     @MockitoSpyBean
     private FileStorage fileStorage;
@@ -91,6 +98,93 @@ public class DocumentMetadataServiceIntegrationTest {
         byte[] downloadedDocument = documentService.downloadDocument(result.getDocumentId());
         String documentContent = new String(downloadedDocument, StandardCharsets.UTF_8);
         assertEquals(content, documentContent);
+    }
+
+    @Test
+    void saveDocument_shouldNotPersistMetadataWhenStorageFails() {
+        String content = "test document content";
+
+        doThrow(new StorageException("Storage failure"))
+            .when(fileStorage)
+            .put(any(), any(), anyLong(), any());
+
+        UploadDocumentCommand command = new UploadDocumentCommand(
+            "test.pdf",
+            "application/pdf",
+            content.length(),
+            new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        );
+
+        assertThrows(StorageException.class, () -> documentService.saveDocument(command));
+
+        assertTrue(documentRepository.findAll().isEmpty());
+        verify(fileStorage).put(
+            anyString(),
+            any(InputStream.class),
+            eq((long) content.length()),
+            eq("application/pdf")
+        );
+        verify(documentRepository, never()).save(any(DocumentMetadata.class));
+        verify(fileStorage, never()).delete(anyString());
+    }
+
+    @Test
+    void saveDocument_shouldDeleteStoredObjectWhenDatabaseFails() {
+        String content = "test document content";
+
+        doThrow(new RuntimeException("Database failure"))
+            .when(documentRepository)
+            .save(any(DocumentMetadata.class));
+
+        UploadDocumentCommand command = new UploadDocumentCommand(
+            "test.pdf",
+            "application/pdf",
+            content.length(),
+            new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        );
+
+        StorageException exception = assertThrows(StorageException.class, () -> documentService.saveDocument(command));
+
+        assertEquals("Storage transaction failed", exception.getMessage());
+
+        assertTrue(documentRepository.findAll().isEmpty());
+
+        ArgumentCaptor<DocumentMetadata> captor = ArgumentCaptor.forClass(DocumentMetadata.class);
+        verify(documentRepository).save(captor.capture());
+
+        DocumentMetadata attemptedDocument = captor.getValue();
+        String storageKey = attemptedDocument.getStorageKey();
+        verify(fileStorage).delete(storageKey);
+        assertObjectDoesNotExist(storageKey);
+    }
+
+    @Test
+    void saveDocument_shouldKeepDatabaseFailureWhenCompensationFails() {
+        String content = "test document content";
+
+        RuntimeException databaseFailure = new RuntimeException("Database failure");
+
+        doThrow(databaseFailure)
+            .when(documentRepository)
+            .save(any(DocumentMetadata.class));
+
+        doThrow(new StorageException("Delete failure"))
+            .when(fileStorage)
+            .delete(anyString());
+
+        UploadDocumentCommand command = new UploadDocumentCommand(
+            "test.pdf",
+            "application/pdf",
+            content.length(),
+            new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        );
+
+        StorageException exception = assertThrows(StorageException.class, () -> documentService.saveDocument(command));
+
+        assertEquals("Storage transaction failed", exception.getMessage());
+        assertEquals(databaseFailure, exception.getCause());
+        verify(documentRepository).save(any(DocumentMetadata.class));
+        verify(fileStorage).delete(anyString());
     }
 
     @Test
@@ -135,6 +229,16 @@ public class DocumentMetadataServiceIntegrationTest {
         assertTrue(documentRepository.findAll().isEmpty());
         verify(documentRepository).save(any(DocumentMetadata.class));
         verify(fileStorage).delete(any());
+    }
+
+    private void assertObjectDoesNotExist(String storageKey) {
+        assertThrows(ErrorResponseException.class, () -> minioClient.statObject(
+                StatObjectArgs.builder()
+                    .bucket("test-bucket")
+                    .object(storageKey)
+                    .build()
+            )
+        );
     }
 
     @TestConfiguration
