@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface DocumentRepository extends JpaRepository<DocumentMetadata, String> {
+public interface DocumentRepository extends JpaRepository<DocumentMetadata, Long> {
 
     DocumentMetadata findByDocumentId(UUID documentId);
 }
