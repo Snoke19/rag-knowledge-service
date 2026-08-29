@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(DocumentController.class)
-public class DocumentControllerTest {
+public class DocumentMetadataControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,7 +40,7 @@ public class DocumentControllerTest {
 
     @Test
     void uploadsDocumentAndReturnsCreatedResponse() throws Exception {
-        String documentId = UUID.randomUUID().toString();
+        UUID documentId = UUID.randomUUID();
 
         MockMultipartFile file = new MockMultipartFile(
             "file",
@@ -54,9 +54,10 @@ public class DocumentControllerTest {
         when(documentService.saveDocument(any())).thenReturn(savedFile);
 
         mockMvc.perform(multipart("/api/documents").file(file))
-            .andExpect(status().isCreated()).andExpect(header().string("Location", "/api/documents/" + documentId))
+            .andExpect(status().isCreated())
+            .andExpect(header().string("Location", "/api/documents/" + documentId))
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.documentId").value(documentId))
+            .andExpect(jsonPath("$.documentId").value(documentId.toString()))
             .andExpect(jsonPath("$.status").value("UPLOADED"));
 
         verify(documentService).saveDocument(any());
@@ -107,7 +108,7 @@ public class DocumentControllerTest {
         );
 
         when(documentService.saveDocument(any())).thenReturn(new SavedFile(
-            UUID.randomUUID().toString(),
+            UUID.randomUUID(),
             DocumentStatus.UPLOADED
         ));
 

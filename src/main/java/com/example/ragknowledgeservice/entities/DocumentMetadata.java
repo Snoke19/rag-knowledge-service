@@ -14,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "documents")
-public class Document {
+public class DocumentMetadata {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
