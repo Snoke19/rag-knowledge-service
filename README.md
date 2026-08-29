@@ -88,9 +88,9 @@ The service is being developed around the following API:
 | Method | Endpoint                     | Purpose                       |
 | ------ | ---------------------------- | ----------------------------- |
 | GET    | `/actuator/health`           | Application health            |
-| POST   | `/api/documents`             | Upload a document             |
-| GET    | `/api/documents/{id}`        | Retrieve document information |
-| POST   | `/api/documents/{id}/ingest` | Start document ingestion      |
+| POST   | `/api/documents`             | Upload a documentMetadata             |
+| GET    | `/api/documents/{id}`        | Retrieve documentMetadata information |
+| POST   | `/api/documents/{id}/ingest` | Start documentMetadata ingestion      |
 | POST   | `/api/search`                | Search the knowledge base     |
 | POST   | `/api/chat`                  | Ask a question using RAG      |
 
@@ -138,7 +138,7 @@ The eventual goal is to build a production-oriented RAG backend capable of:
 6. Supplying retrieved context to an LLM.
 7. Returning answers grounded in the uploaded knowledge.
 
-PDF is the first document format targeted by the project.
+PDF is the first documentMetadata format targeted by the project.
 
 ## Configuration
 

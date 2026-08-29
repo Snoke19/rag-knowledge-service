@@ -14,4 +14,6 @@ public interface FileStorage {
     InputStream get(String key);
 
     void delete(String key);
+
+    void deleteAll();
 }
