@@ -23,7 +23,7 @@ public class DocumentService {
     private final StorageTransactionManager storageTransactionManager;
 
     public SavedFile saveDocument(UploadDocumentCommand command) {
-        String documentId = UUID.randomUUID().toString();
+        UUID documentId = UUID.randomUUID();
         String storageKey = "documents/" + documentId + "/source.pdf";
 
         return storageTransactionManager.execute(context -> {
@@ -38,7 +38,7 @@ public class DocumentService {
             context.register(() -> fileStorage.delete(storageKey));
 
             Document document = Document.builder()
-                .id(documentId)
+                .documentId(documentId)
                 .title(command.filename())
                 .contentType(command.contentType())
                 .size(command.size())
@@ -47,7 +47,7 @@ public class DocumentService {
 
             Document savedDocument = documentRepository.save(document);
 
-            return new SavedFile(savedDocument.getId(), DocumentStatus.UPLOADED);
+            return new SavedFile(savedDocument.getDocumentId(), DocumentStatus.UPLOADED);
         });
     }
 }

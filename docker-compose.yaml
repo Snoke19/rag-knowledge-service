@@ -17,7 +17,29 @@ services:
       retries: 5
     cpus: 1.0
     mem_limit: 1g
+  minio:
+    image: quay.io/minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: [ "server", "--console-address", ":9001", "/data" ]
+    volumes:
+      - data-minio:/data
+    env_file: .env
+
+  minio-buckets:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      - minio
+    restart: on-failure
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set dockerminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb dockerminio/rag-documents;
+      exit 0;
+      "
 
 volumes:
+  data-minio:
   postgres_data:
     driver: local
