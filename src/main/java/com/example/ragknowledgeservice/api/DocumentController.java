@@ -1,7 +1,7 @@
 package com.example.ragknowledgeservice.api;
 
 import com.example.ragknowledgeservice.common.MultipartFileMapper;
-import com.example.ragknowledgeservice.common.ValidPdf;
+import com.example.ragknowledgeservice.common.validation.ValidPdf;
 import com.example.ragknowledgeservice.dto.SavedFile;
 import com.example.ragknowledgeservice.service.DocumentService;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.example.ragknowledgeservice.common;
+package com.example.ragknowledgeservice.common.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

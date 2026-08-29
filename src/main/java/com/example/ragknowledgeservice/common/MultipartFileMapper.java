@@ -4,6 +4,7 @@ import com.example.ragknowledgeservice.dto.UploadDocumentCommand;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class MultipartFileMapper {
 
@@ -12,8 +13,17 @@ public class MultipartFileMapper {
 
     public static UploadDocumentCommand toUploadDocumentCommand(MultipartFile file) {
         try {
+            String originalFilename = Optional
+                .ofNullable(file.getOriginalFilename())
+                .orElse("unknown")
+                .replace('\\', '/');
+
+            originalFilename = originalFilename.substring(
+                originalFilename.lastIndexOf('/') + 1
+            );
+
             return new UploadDocumentCommand(
-                file.getOriginalFilename(),
+                originalFilename,
                 file.getContentType(),
                 file.getSize(),
                 file.getInputStream()

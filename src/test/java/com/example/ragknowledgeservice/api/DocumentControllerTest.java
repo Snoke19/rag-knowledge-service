@@ -1,7 +1,9 @@
 package com.example.ragknowledgeservice.api;
 
 import com.example.ragknowledgeservice.common.DocumentStatus;
+import com.example.ragknowledgeservice.common.MultipartFileMapper;
 import com.example.ragknowledgeservice.dto.SavedFile;
+import com.example.ragknowledgeservice.dto.UploadDocumentCommand;
 import com.example.ragknowledgeservice.handler.GlobalExceptionHandler;
 import com.example.ragknowledgeservice.service.DocumentService;
 import org.junit.jupiter.api.Test;
@@ -15,10 +17,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartException;
-import org.springframework.web.multipart.MultipartResolver;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -35,9 +37,6 @@ public class DocumentControllerTest {
 
     @MockitoBean
     private DocumentService documentService;
-
-    @MockitoBean
-    private MultipartResolver multipartResolver;
 
     @Test
     void uploadsDocumentAndReturnsCreatedResponse() throws Exception {
@@ -157,6 +156,53 @@ public class DocumentControllerTest {
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.title").value("Invalid multipart request"))
             .andExpect(jsonPath("$.type").value("https://ragknowledgeservice.example.com/problems/invalid-multipart"));
+    }
+
+    @Test
+    void rejectsFileWithPdfContentTypeButInvalidContent() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "company-handbook.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            "not a real pdf".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/documents").file(file))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors[0].reason")
+                .value("INVALID_PDF_CONTENT"));
+    }
+
+    @Test
+    void stripsPathFromOriginalFilename() {
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "../../company-handbook.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            "%PDF-1.4 test".getBytes()
+        );
+
+        UploadDocumentCommand command =
+            MultipartFileMapper.toUploadDocumentCommand(file);
+
+        assertThat(command.filename())
+            .isEqualTo("company-handbook.pdf");
+    }
+
+    @Test
+    void stripsWindowsPathFromOriginalFilename() {
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "C:\\temp\\company-handbook.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            "%PDF-1.4 test".getBytes()
+        );
+
+        UploadDocumentCommand command =
+            MultipartFileMapper.toUploadDocumentCommand(file);
+
+        assertThat(command.filename())
+            .isEqualTo("company-handbook.pdf");
     }
 
     @RestController
