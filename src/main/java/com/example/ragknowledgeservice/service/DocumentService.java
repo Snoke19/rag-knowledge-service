@@ -47,11 +47,12 @@ public class DocumentService {
                 .contentType(command.contentType())
                 .size(command.size())
                 .storageKey(storageKey)
+                .status(DocumentStatus.UPLOADED)
                 .build();
 
             DocumentMetadata savedDocumentMetadata = documentRepository.save(documentMetadata);
 
-            return new SavedFile(savedDocumentMetadata.getDocumentId(), DocumentStatus.UPLOADED);
+            return new SavedFile(savedDocumentMetadata.getDocumentId(), savedDocumentMetadata.getStatus());
         });
     }
 

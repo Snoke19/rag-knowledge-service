@@ -1,5 +1,6 @@
 package com.example.ragknowledgeservice.entities;
 
+import com.example.ragknowledgeservice.common.DocumentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,4 +36,8 @@ public class DocumentMetadata {
 
     @Column(name = "storage_key", nullable = false, unique = true, length = 64)
     private String storageKey;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private DocumentStatus status;
 }
