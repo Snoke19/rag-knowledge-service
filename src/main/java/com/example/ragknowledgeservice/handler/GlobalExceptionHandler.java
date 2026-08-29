@@ -2,6 +2,7 @@ package com.example.ragknowledgeservice.handler;
 
 import com.example.ragknowledgeservice.common.error.ErrorType;
 import com.example.ragknowledgeservice.common.error.ValidationReason;
+import com.example.ragknowledgeservice.service.storage.StorageException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
@@ -22,6 +23,24 @@ import java.util.UUID;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(StorageException.class)
+    public ProblemDetail handleStorageException(StorageException exception, HttpServletRequest request) {
+        log.error(
+            "Handling StorageException. method={}, uri={}",
+            request.getMethod(),
+            request.getRequestURI(),
+            exception
+        );
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problem.setType(URI.create(ErrorType.STORAGE_ERROR.getUri()));
+        problem.setTitle("Storage operation failed");
+        problem.setDetail("The document could not be stored.");
+        problem.setInstance(buildInstance());
+
+        return problem;
+    }
 
     @ExceptionHandler(MultipartException.class)
     public ProblemDetail handleMultipartException(MultipartException exception, HttpServletRequest request) {
