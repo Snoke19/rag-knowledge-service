@@ -1,0 +1,49 @@
+# Build output
+target/
+build/
+*.class
+
+# Maven wrapper cache (not needed inside image build context if using system Maven)
+.mvn/wrapper/maven-wrapper.jar
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env and secrets
+.env
+.env.local
+.env.*.local
+.env.example
+
+# Docker
+docker-compose.yaml
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Docs
+README.md
+HELP.md
+*.md
+
+# Logs
+*.log
