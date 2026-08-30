@@ -55,10 +55,12 @@ OCR is out of scope.
 ## Text encoding
 
 Observed:
-[write the actual result of the encoding test]
+Extended Latin characters such as `é` and `ü` are extracted correctly when they are represented by a compatible PDF font
+encoding.
 
 Decision:
-[write the actual decision]
+The initial parser does not perform font or encoding repair. The source PDF must contain text that can be correctly
+interpreted by the PDF parser.
 
 ## Out of scope
 
