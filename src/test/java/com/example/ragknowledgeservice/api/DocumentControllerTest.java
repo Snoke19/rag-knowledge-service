@@ -285,7 +285,7 @@ public class DocumentControllerTest {
     }
 
     @Test
-    void rejectsFileExceedingMaximumSize() throws Exception {
+    void rejectsInvalidPdfContentForLargeFile() throws Exception {
         byte[] content = new byte[6 * 1024 * 1024];
 
         MockMultipartFile file = new MockMultipartFile(
@@ -297,7 +297,13 @@ public class DocumentControllerTest {
 
         mockMvc.perform(multipart("/api/documents").file(file))
             .andExpect(status().isBadRequest())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.title").value("Validation failed"))
+            .andExpect(jsonPath("$.type").value("https://ragknowledgeservice.example.com/problems/validation-error"))
+            .andExpect(jsonPath("$.errors[0].field").value("file"))
+            .andExpect(jsonPath("$.errors[0].reason").value("INVALID_PDF_CONTENT"))
+            .andExpect(jsonPath("$.errors[0].detail").value("File content is not a valid PDF."));
 
         verifyNoInteractions(documentService);
     }

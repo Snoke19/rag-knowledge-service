@@ -11,6 +11,7 @@ import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
@@ -130,6 +131,23 @@ public class GlobalExceptionHandler {
 
         List<FieldError> errors = createErrors(exception);
         problem.setProperty("errors", errors);
+        return problem;
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail handleMaxUploadSizeExceeded(MaxUploadSizeExceededException exception, HttpServletRequest request) {
+        log.warn("Uploaded file exceeds maximum allowed size. method={}, uri={}",
+            request.getMethod(),
+            request.getRequestURI(),
+            exception
+        );
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setType(URI.create(ErrorType.FILE_TOO_LARGE.getUri()));
+        problem.setTitle("File too large");
+        problem.setDetail("The uploaded file exceeds the maximum allowed size.");
+        problem.setInstance(buildInstance());
+
         return problem;
     }
 
