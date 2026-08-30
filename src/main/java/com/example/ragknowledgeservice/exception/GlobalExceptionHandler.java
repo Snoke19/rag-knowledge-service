@@ -23,6 +23,25 @@ import java.util.UUID;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnexpectedException(Exception exception, HttpServletRequest request) {
+        log.error(
+            "Unexpected exception. method={}, uri={}",
+            request.getMethod(),
+            request.getRequestURI(),
+            exception
+        );
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        problem.setType(URI.create(ErrorType.INTERNAL_ERROR.getUri()));
+        problem.setTitle("Internal server error");
+        problem.setDetail("An unexpected error occurred.");
+        problem.setInstance(buildInstance());
+
+        return problem;
+    }
+
     @ExceptionHandler(StorageException.class)
     public ProblemDetail handleStorageException(StorageException exception, HttpServletRequest request) {
         log.error(
@@ -64,7 +83,8 @@ public class GlobalExceptionHandler {
         log.warn("Handling MissingServletRequestPartException. method={}, uri={}, part={}",
             request.getMethod(),
             request.getRequestURI(),
-            exception.getRequestPartName()
+            exception.getRequestPartName(),
+            exception
         );
 
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -80,7 +100,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleValidation(HandlerMethodValidationException exception, HttpServletRequest request) {
         log.warn("Handling HandlerMethodValidationException. method={}, uri={}",
             request.getMethod(),
-            request.getRequestURI()
+            request.getRequestURI(),
+            exception
         );
 
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -113,7 +134,11 @@ public class GlobalExceptionHandler {
     }
 
     private ValidationReason resolveReason(String code) {
-        return ValidationReason.valueOf(code);
+        try {
+            return ValidationReason.valueOf(code);
+        } catch (IllegalArgumentException exception) {
+            return ValidationReason.UNKNOWN;
+        }
     }
 
     private URI buildInstance() {
