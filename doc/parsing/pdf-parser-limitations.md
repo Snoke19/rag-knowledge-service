@@ -1,6 +1,6 @@
 # PDF Parser Limitations
 
-The initial parser uses Apache PDFBox PDFTextStripper.
+The current implementation uses Apache PDFBox `PDFTextStripper`.
 
 ## Normal text
 
@@ -10,11 +10,19 @@ Normal text is extracted successfully and page order is preserved.
 Decision:
 Supported.
 
+## Headers and footers
+
+Result:
+Headers and footers are extracted as ordinary text.
+
+Decision:
+No automatic removal is performed.
+
 ## Tables
 
 Result:
-Cell text is extracted, but the parser exposes only plain text.
-Row/column semantics are not represented.
+Cell text is extracted, but the application receives plain text only. There is no row/column structure in
+`DocumentPage`.
 
 Decision:
 Advanced table extraction is out of scope.
@@ -22,41 +30,37 @@ Advanced table extraction is out of scope.
 ## Multiple columns
 
 Result:
-Text is extracted, but the parser does not provide a semantic guarantee
-that visual reading order will always be preserved.
+Text from both columns is extracted, but the parser does not provide a semantic guarantee that visual reading order will
+always be preserved.
 
 Decision:
-Layout reconstruction is out of scope.
+Advanced layout reconstruction is out of scope.
 
-## Headers and footers
-
-Result:
-Headers and footers are extracted as ordinary text.
-
-Decision:
-No automatic header/footer removal is performed.
-
-## Images
+## Image-only / scanned pages
 
 Result:
-Text embedded in an image is not extracted by the text extractor.
+Image-only pages produce no useful text because PDFBox text extraction does not perform OCR.
 
 Decision:
 OCR is out of scope.
 
-## Scanned PDFs
+## Text embedded in images
 
 Result:
-Image-only pages may contain little or no extracted text even when
-the page is visually readable.
+Text drawn inside an image is not extracted by the text extractor.
 
 Decision:
 OCR is out of scope.
 
-## Encoding
+## Text encoding
 
 Result:
-[actual observed result from the fixture]
+[record the actual result of the encoding test]
 
 Decision:
-[actual decision]
+[record the actual decision]
+
+## Scope
+
+The initial parser intentionally supports basic text extraction only. OCR, semantic layout reconstruction, table
+extraction, LLM cleanup, section detection, summarization, and chunking are handled by later concerns if needed.
