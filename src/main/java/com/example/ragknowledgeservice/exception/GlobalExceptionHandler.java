@@ -1,8 +1,7 @@
-package com.example.ragknowledgeservice.handler;
+package com.example.ragknowledgeservice.exception;
 
 import com.example.ragknowledgeservice.common.error.ErrorType;
 import com.example.ragknowledgeservice.common.error.ValidationReason;
-import com.example.ragknowledgeservice.service.storage.StorageException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;

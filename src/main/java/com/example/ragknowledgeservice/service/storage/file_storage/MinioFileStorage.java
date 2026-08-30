@@ -1,7 +1,7 @@
 package com.example.ragknowledgeservice.service.storage.file_storage;
 
 import com.example.ragknowledgeservice.config.MinioStorageProperties;
-import com.example.ragknowledgeservice.service.storage.StorageException;
+import com.example.ragknowledgeservice.exception.StorageException;
 import io.minio.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

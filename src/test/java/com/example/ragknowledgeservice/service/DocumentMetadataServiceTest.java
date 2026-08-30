@@ -2,9 +2,10 @@ package com.example.ragknowledgeservice.service;
 
 import com.example.ragknowledgeservice.command.UploadDocumentCommand;
 import com.example.ragknowledgeservice.common.DocumentStatus;
+import com.example.ragknowledgeservice.common.hasher.ContentHasher;
 import com.example.ragknowledgeservice.dto.SavedFile;
+import com.example.ragknowledgeservice.exception.StorageException;
 import com.example.ragknowledgeservice.repositories.DocumentRepository;
-import com.example.ragknowledgeservice.service.storage.StorageException;
 import com.example.ragknowledgeservice.service.storage.StorageTransactionManager;
 import com.example.ragknowledgeservice.service.storage.file_storage.FileStorage;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ class DocumentServiceTest {
     private FileStorage fileStorage;
 
     @Mock
+    private ContentHasher contentHasher;
+
+    @Mock
     private DocumentRepository documentRepository;
 
     @Mock
@@ -38,6 +42,7 @@ class DocumentServiceTest {
     void shouldDelegateUploadToStorageTransactionManager() {
         documentService = new DocumentService(
             fileStorage,
+            contentHasher,
             documentRepository,
             storageTransactionManager
         );
@@ -63,6 +68,7 @@ class DocumentServiceTest {
     void shouldPropagateStorageTransactionFailure() {
         documentService = new DocumentService(
             fileStorage,
+            contentHasher,
             documentRepository,
             storageTransactionManager
         );

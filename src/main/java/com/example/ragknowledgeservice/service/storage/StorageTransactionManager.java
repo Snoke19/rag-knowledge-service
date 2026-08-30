@@ -1,5 +1,6 @@
 package com.example.ragknowledgeservice.service.storage;
 
+import com.example.ragknowledgeservice.exception.StorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class StorageTransactionManager {
                     throw exception;
                 }
             });
-        } catch (RuntimeException exception) {
+        } catch (Exception exception) {
             context.compensate();
 
             log.error("Storage transaction failed", exception);
