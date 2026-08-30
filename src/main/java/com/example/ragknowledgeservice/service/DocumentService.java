@@ -5,6 +5,7 @@ import com.example.ragknowledgeservice.common.DocumentStatus;
 import com.example.ragknowledgeservice.common.hasher.ContentHasher;
 import com.example.ragknowledgeservice.dto.SavedFile;
 import com.example.ragknowledgeservice.entities.DocumentMetadata;
+import com.example.ragknowledgeservice.exception.DocumentNotFoundException;
 import com.example.ragknowledgeservice.exception.StorageException;
 import com.example.ragknowledgeservice.repositories.DocumentRepository;
 import com.example.ragknowledgeservice.service.storage.StorageTransactionManager;
@@ -64,12 +65,16 @@ public class DocumentService {
 
     @Transactional(readOnly = true)
     public DocumentMetadata getMetaDataDocument(UUID documentId) {
-        return documentRepository.findByDocumentId(documentId);
+        return documentRepository.findByDocumentId(documentId).orElseThrow(() ->
+            new DocumentNotFoundException("Metadata of the document not found!", documentId.toString())
+        );
     }
 
     @Transactional(readOnly = true)
     public byte[] downloadDocument(UUID documentId) {
-        DocumentMetadata document = documentRepository.findByDocumentId(documentId);
+        DocumentMetadata document = documentRepository.findByDocumentId(documentId).orElseThrow(() ->
+            new DocumentNotFoundException("Metadata of the document not found!", documentId.toString())
+        );
 
         try (InputStream inputStream = fileStorage.get(document.getStorageKey())) {
             return inputStream.readAllBytes();

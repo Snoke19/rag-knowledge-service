@@ -11,6 +11,7 @@ import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
@@ -22,6 +23,43 @@ import java.util.UUID;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnexpectedException(Exception exception, HttpServletRequest request) {
+        log.error(
+            "Unexpected exception. method={}, uri={}",
+            request.getMethod(),
+            request.getRequestURI(),
+            exception
+        );
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        problem.setType(URI.create(ErrorType.INTERNAL_ERROR.getUri()));
+        problem.setTitle("Internal server error");
+        problem.setDetail("An unexpected error occurred.");
+        problem.setInstance(buildInstance());
+
+        return problem;
+    }
+
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ProblemDetail handleDocumentMetadataNotFound(DocumentNotFoundException exception, HttpServletRequest request) {
+        log.warn(
+            "Document metadata not found. method={}, uri={}, documentId={}",
+            request.getMethod(),
+            request.getRequestURI(),
+            exception.getDocumentId()
+        );
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problem.setType(URI.create(ErrorType.DOCUMENT_NOT_FOUND.getUri()));
+        problem.setTitle("Document not found");
+        problem.setDetail("The requested document was not found. id: " + exception.getDocumentId());
+        problem.setInstance(buildInstance());
+
+        return problem;
+    }
 
     @ExceptionHandler(StorageException.class)
     public ProblemDetail handleStorageException(StorageException exception, HttpServletRequest request) {
@@ -64,7 +102,8 @@ public class GlobalExceptionHandler {
         log.warn("Handling MissingServletRequestPartException. method={}, uri={}, part={}",
             request.getMethod(),
             request.getRequestURI(),
-            exception.getRequestPartName()
+            exception.getRequestPartName(),
+            exception
         );
 
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -80,7 +119,8 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleValidation(HandlerMethodValidationException exception, HttpServletRequest request) {
         log.warn("Handling HandlerMethodValidationException. method={}, uri={}",
             request.getMethod(),
-            request.getRequestURI()
+            request.getRequestURI(),
+            exception
         );
 
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
@@ -91,6 +131,23 @@ public class GlobalExceptionHandler {
 
         List<FieldError> errors = createErrors(exception);
         problem.setProperty("errors", errors);
+        return problem;
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail handleMaxUploadSizeExceeded(MaxUploadSizeExceededException exception, HttpServletRequest request) {
+        log.warn("Uploaded file exceeds maximum allowed size. method={}, uri={}",
+            request.getMethod(),
+            request.getRequestURI(),
+            exception
+        );
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setType(URI.create(ErrorType.FILE_TOO_LARGE.getUri()));
+        problem.setTitle("File too large");
+        problem.setDetail("The uploaded file exceeds the maximum allowed size.");
+        problem.setInstance(buildInstance());
+
         return problem;
     }
 
@@ -113,7 +170,11 @@ public class GlobalExceptionHandler {
     }
 
     private ValidationReason resolveReason(String code) {
-        return ValidationReason.valueOf(code);
+        try {
+            return ValidationReason.valueOf(code);
+        } catch (IllegalArgumentException exception) {
+            return ValidationReason.UNKNOWN;
+        }
     }
 
     private URI buildInstance() {
