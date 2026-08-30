@@ -19,7 +19,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
         "spring.servlet.multipart.max-file-size=10B",
-        "spring.servlet.multipart.max-request-size=15B"
+        "spring.servlet.multipart.max-request-size=1KB"
     }
 )
 class DocumentUploadLimitsIntegrationTest {
@@ -54,6 +54,9 @@ class DocumentUploadLimitsIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
-        assertThat(response.getBody()).contains("The uploaded file exceeds the maximum allowed size.");
+        assertThat(response.getBody()).contains("\"title\":\"File too large\"");
+        assertThat(response.getBody()).contains("\"status\":400");
+        assertThat(response.getBody()).contains("\"type\":\"https://ragknowledgeservice.example.com/problems/file-too-large\"");
+        assertThat(response.getBody()).contains("\"detail\":\"The uploaded file exceeds the maximum allowed size.\"");
     }
 }
