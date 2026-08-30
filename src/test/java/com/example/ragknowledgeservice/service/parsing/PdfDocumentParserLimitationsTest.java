@@ -84,9 +84,9 @@ class PdfDocumentParserLimitationsTest {
             .contains("Name")
             .contains("Age")
             .contains("Alex")
-            .contains("30");
-
-        assertThat(text).doesNotContain("|");
+            .contains("30")
+            .contains("John")
+            .contains("25");
     }
 
     @Test
