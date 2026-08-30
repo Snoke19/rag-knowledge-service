@@ -265,7 +265,7 @@ public class DocumentControllerTest {
     void returnsNotFoundWhenDocumentDoesNotExist() throws Exception {
         UUID documentId = UUID.randomUUID();
 
-        when(documentService.getMetaDataDocument(documentId))
+        when(documentService.getDocumentMetadata(documentId))
             .thenThrow(new DocumentNotFoundException(
                 "Metadata of the document not found!",
                 documentId.toString()
@@ -281,7 +281,7 @@ public class DocumentControllerTest {
             .andExpect(jsonPath("$.instance").exists())
             .andExpect(jsonPath("$.exception").doesNotExist());
 
-        verify(documentService).getMetaDataDocument(documentId);
+        verify(documentService).getDocumentMetadata(documentId);
     }
 
     @Test
@@ -312,7 +312,7 @@ public class DocumentControllerTest {
     void returnsDocumentMetadata() throws Exception {
         UUID documentId = UUID.randomUUID();
 
-        when(documentService.getMetaDataDocument(documentId))
+        when(documentService.getDocumentMetadata(documentId))
             .thenReturn(
                 DocumentMetadata.builder()
                     .documentId(documentId)
@@ -339,7 +339,7 @@ public class DocumentControllerTest {
                 }
                 """.formatted(documentId), JsonCompareMode.STRICT));
 
-        verify(documentService).getMetaDataDocument(documentId);
+        verify(documentService).getDocumentMetadata(documentId);
     }
 
     @RestController

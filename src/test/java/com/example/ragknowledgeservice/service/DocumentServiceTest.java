@@ -205,7 +205,7 @@ class DocumentServiceTest {
 
         DocumentService documentService = createService();
 
-        assertThatThrownBy(() -> documentService.getMetaDataDocument(documentId))
+        assertThatThrownBy(() -> documentService.getDocumentMetadata(documentId))
             .isInstanceOf(DocumentNotFoundException.class).hasMessage("Metadata of the document not found!");
         verify(documentRepository).findByDocumentId(documentId);
     }
@@ -226,7 +226,7 @@ class DocumentServiceTest {
 
         when(documentRepository.findByDocumentId(documentId)).thenReturn(Optional.of(metadata));
         DocumentService documentService = createService();
-        DocumentMetadata result = documentService.getMetaDataDocument(documentId);
+        DocumentMetadata result = documentService.getDocumentMetadata(documentId);
 
         assertThat(result).isSameAs(metadata);
         assertThat(result.getDocumentId()).isEqualTo(documentId);

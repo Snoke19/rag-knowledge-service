@@ -64,7 +64,7 @@ public class DocumentService {
     }
 
     @Transactional(readOnly = true)
-    public DocumentMetadata getMetaDataDocument(UUID documentId) {
+    public DocumentMetadata getDocumentMetadata(UUID documentId) {
         return documentRepository.findByDocumentId(documentId).orElseThrow(() ->
             new DocumentNotFoundException("Metadata of the document not found!", documentId.toString())
         );
