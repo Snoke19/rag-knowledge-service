@@ -46,9 +46,9 @@ class PdfDocumentParserImplTest {
 
         assertThat(pages).hasSize(2);
 
-        assertThat(pages.getFirst().documentId()).isEqualTo(documentId);
-        assertThat(pages.getFirst().pageNumber()).isEqualTo(1);
-        assertThat(pages.getFirst().text()).contains("First page text");
+        assertThat(pages.get(0).documentId()).isEqualTo(documentId);
+        assertThat(pages.get(0).pageNumber()).isEqualTo(1);
+        assertThat(pages.get(0).text()).contains("First page text");
         assertThat(pages.get(0).sourceFilename()).isEqualTo("sample.pdf");
         assertThat(pages.get(0).extractionOrder()).isEqualTo(1);
 
