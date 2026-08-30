@@ -42,6 +42,24 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ProblemDetail handleDocumentMetadataNotFound(DocumentNotFoundException exception, HttpServletRequest request) {
+        log.warn(
+            "Document metadata not found. method={}, uri={}, documentId={}",
+            request.getMethod(),
+            request.getRequestURI(),
+            exception.getDocumentId()
+        );
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problem.setType(URI.create(ErrorType.DOCUMENT_NOT_FOUND.getUri()));
+        problem.setTitle("Document not found");
+        problem.setDetail("The requested document was not found. id: " + exception.getDocumentId());
+        problem.setInstance(buildInstance());
+
+        return problem;
+    }
+
     @ExceptionHandler(StorageException.class)
     public ProblemDetail handleStorageException(StorageException exception, HttpServletRequest request) {
         log.error(

@@ -4,16 +4,19 @@ import com.example.ragknowledgeservice.command.UploadDocumentCommand;
 import com.example.ragknowledgeservice.common.DocumentStatus;
 import com.example.ragknowledgeservice.common.hasher.ContentHasher;
 import com.example.ragknowledgeservice.dto.SavedFile;
+import com.example.ragknowledgeservice.exception.DocumentNotFoundException;
 import com.example.ragknowledgeservice.exception.StorageException;
 import com.example.ragknowledgeservice.repositories.DocumentRepository;
 import com.example.ragknowledgeservice.service.storage.StorageTransactionManager;
 import com.example.ragknowledgeservice.service.storage.file_storage.FileStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +39,19 @@ class DocumentServiceTest {
     @Mock
     private StorageTransactionManager storageTransactionManager;
 
+    @InjectMocks
     private DocumentService documentService;
+
+    @Test
+    void throwsDocumentMetadataNotFoundExceptionWhenDocumentDoesNotExist() {
+        UUID documentId = UUID.randomUUID();
+
+        when(documentRepository.findByDocumentId(documentId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> documentService.getMetaDataDocument(documentId)).isInstanceOf(DocumentNotFoundException.class);
+
+        verify(documentRepository).findByDocumentId(documentId);
+    }
 
     @Test
     void shouldDelegateUploadToStorageTransactionManager() {

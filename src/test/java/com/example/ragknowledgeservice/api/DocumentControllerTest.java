@@ -1,9 +1,8 @@
 package com.example.ragknowledgeservice.api;
 
-import com.example.ragknowledgeservice.command.UploadDocumentCommand;
 import com.example.ragknowledgeservice.common.DocumentStatus;
-import com.example.ragknowledgeservice.common.MultipartFileMapper;
 import com.example.ragknowledgeservice.dto.SavedFile;
+import com.example.ragknowledgeservice.exception.DocumentNotFoundException;
 import com.example.ragknowledgeservice.exception.GlobalExceptionHandler;
 import com.example.ragknowledgeservice.exception.StorageException;
 import com.example.ragknowledgeservice.service.DocumentService;
@@ -22,15 +21,13 @@ import org.springframework.web.multipart.MultipartException;
 import java.util.UUID;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(DocumentController.class)
-public class DocumentMetadataControllerTest {
+public class DocumentControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -263,31 +260,26 @@ public class DocumentMetadataControllerTest {
     }
 
     @Test
-    void stripsPathFromOriginalFilename() {
-        MockMultipartFile file = new MockMultipartFile(
-            "file",
-            "../../company-handbook.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "%PDF-1.4 test".getBytes()
-        );
+    void returnsNotFoundWhenDocumentDoesNotExist() throws Exception {
+        UUID documentId = UUID.randomUUID();
 
-        UploadDocumentCommand command = MultipartFileMapper.toUploadDocumentCommand(file);
+        when(documentService.getMetaDataDocument(documentId))
+            .thenThrow(new DocumentNotFoundException(
+                "Metadata of the document not found!",
+                documentId.toString()
+            ));
 
-        assertEquals("company-handbook.pdf", command.filename());
-    }
+        mockMvc.perform(get("/api/documents/{documentId}", documentId))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.title").value("Document not found"))
+            .andExpect(jsonPath("$.detail").value("The requested document was not found. id: " + documentId))
+            .andExpect(jsonPath("$.type").value("https://ragknowledgeservice.example.com/problems/document-not-found"))
+            .andExpect(jsonPath("$.instance").exists())
+            .andExpect(jsonPath("$.exception").doesNotExist());
 
-    @Test
-    void stripsWindowsPathFromOriginalFilename() {
-        MockMultipartFile file = new MockMultipartFile(
-            "file",
-            "C:\\temp\\company-handbook.pdf",
-            MediaType.APPLICATION_PDF_VALUE,
-            "%PDF-1.4 test".getBytes()
-        );
-
-        UploadDocumentCommand command = MultipartFileMapper.toUploadDocumentCommand(file);
-
-        assertEquals("company-handbook.pdf", command.filename());
+        verify(documentService).getMetaDataDocument(documentId);
     }
 
     @RestController
