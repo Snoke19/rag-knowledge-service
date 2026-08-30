@@ -1,5 +1,6 @@
 package com.example.ragknowledgeservice.service.parsing;
 
+import com.example.ragknowledgeservice.entities.DocumentMetadata;
 import com.example.ragknowledgeservice.exception.DocumentParsingException;
 import com.example.ragknowledgeservice.service.DocumentService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Component
@@ -23,6 +23,9 @@ public class PdfDocumentParserImpl implements DocumentParser {
     public List<DocumentPage> parse(UUID documentId) {
         byte[] document = documentService.downloadDocument(documentId);
 
+        DocumentMetadata metadata = documentService.getDocumentMetadata(documentId);
+        String sourceFilename = metadata.getTitle();
+
         try (PDDocument pdf = Loader.loadPDF(document)) {
             PDFTextStripper textStripper = new PDFTextStripper();
             List<DocumentPage> pages = new ArrayList<>();
@@ -32,7 +35,14 @@ public class PdfDocumentParserImpl implements DocumentParser {
                 textStripper.setEndPage(pageNumber);
 
                 String text = textStripper.getText(pdf);
-                pages.add(new DocumentPage(documentId, pageNumber, text, Map.of()));
+
+                pages.add(new DocumentPage(
+                    documentId,
+                    pageNumber,
+                    text,
+                    sourceFilename,
+                    pageNumber
+                ));
             }
 
             return pages;

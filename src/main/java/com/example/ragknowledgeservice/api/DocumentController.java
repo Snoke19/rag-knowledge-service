@@ -35,7 +35,7 @@ public class DocumentController {
 
     @GetMapping("/documents/{documentId}")
     public DocumentMetadataResponse getDocument(@PathVariable UUID documentId) {
-        DocumentMetadata documentMetadata = documentService.getMetaDataDocument(documentId);
+        DocumentMetadata documentMetadata = documentService.getDocumentMetadata(documentId);
 
         return new DocumentMetadataResponse(
             documentMetadata.getDocumentId(),

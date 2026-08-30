@@ -91,7 +91,7 @@ public class DocumentServiceIntegrationTest {
         assertNotNull(result.getDocumentId());
         assertEquals(DocumentStatus.UPLOADED, result.getStatus());
 
-        DocumentMetadata documentMetadata = documentService.getMetaDataDocument(result.getDocumentId());
+        DocumentMetadata documentMetadata = documentService.getDocumentMetadata(result.getDocumentId());
         assertNotNull(documentMetadata);
         assertNotNull(documentMetadata.getId());
         assertEquals(documentMetadata.getDocumentId(), result.getDocumentId());
@@ -200,7 +200,7 @@ public class DocumentServiceIntegrationTest {
             new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
         ));
 
-        DocumentMetadata document = documentService.getMetaDataDocument(
+        DocumentMetadata document = documentService.getDocumentMetadata(
             result.getDocumentId()
         );
 
@@ -224,7 +224,7 @@ public class DocumentServiceIntegrationTest {
             )
         );
 
-        DocumentMetadata metadata = documentService.getMetaDataDocument(result.getDocumentId());
+        DocumentMetadata metadata = documentService.getDocumentMetadata(result.getDocumentId());
 
         assertNotNull(metadata.getId());
         assertEquals(result.getDocumentId(), metadata.getDocumentId());
@@ -250,7 +250,7 @@ public class DocumentServiceIntegrationTest {
             )
         );
 
-        DocumentMetadata metadata = documentService.getMetaDataDocument(result.getDocumentId());
+        DocumentMetadata metadata = documentService.getDocumentMetadata(result.getDocumentId());
 
         assertDoesNotThrow(() ->
             minioClient.statObject(
@@ -276,7 +276,7 @@ public class DocumentServiceIntegrationTest {
             )
         );
 
-        DocumentMetadata metadata = documentService.getMetaDataDocument(result.getDocumentId());
+        DocumentMetadata metadata = documentService.getDocumentMetadata(result.getDocumentId());
 
         assertEquals(bytes.length, metadata.getSize());
 
