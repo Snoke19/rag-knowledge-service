@@ -210,6 +210,82 @@ public class DocumentServiceIntegrationTest {
         );
     }
 
+    @Test
+    void saveDocument_persistsExpectedMetadata() {
+        String content = "test document content";
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+
+        SavedFile result = documentService.saveDocument(
+            new UploadDocumentCommand(
+                "test.pdf",
+                "application/pdf",
+                bytes.length,
+                new ByteArrayInputStream(bytes)
+            )
+        );
+
+        DocumentMetadata metadata = documentService.getMetaDataDocument(result.getDocumentId());
+
+        assertNotNull(metadata.getId());
+        assertEquals(result.getDocumentId(), metadata.getDocumentId());
+        assertEquals("test.pdf", metadata.getTitle());
+        assertEquals("application/pdf", metadata.getContentType());
+        assertEquals(bytes.length, metadata.getSize());
+        assertEquals(DocumentStatus.UPLOADED, metadata.getStatus());
+        assertNotNull(metadata.getStorageKey());
+        assertNotNull(metadata.getContentSha256());
+    }
+
+    @Test
+    void saveDocument_storesPdfInObjectStorage() {
+        String content = "test document content";
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+
+        SavedFile result = documentService.saveDocument(
+            new UploadDocumentCommand(
+                "test.pdf",
+                "application/pdf",
+                bytes.length,
+                new ByteArrayInputStream(bytes)
+            )
+        );
+
+        DocumentMetadata metadata = documentService.getMetaDataDocument(result.getDocumentId());
+
+        assertDoesNotThrow(() ->
+            minioClient.statObject(
+                StatObjectArgs.builder()
+                    .bucket("test-bucket")
+                    .object(metadata.getStorageKey())
+                    .build()
+            )
+        );
+    }
+
+    @Test
+    void saveDocument_persistsCorrectSizeAndGeneratedStorageKey() {
+        String content = "test document content";
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+
+        SavedFile result = documentService.saveDocument(
+            new UploadDocumentCommand(
+                "test.pdf",
+                "application/pdf",
+                bytes.length,
+                new ByteArrayInputStream(bytes)
+            )
+        );
+
+        DocumentMetadata metadata = documentService.getMetaDataDocument(result.getDocumentId());
+
+        assertEquals(bytes.length, metadata.getSize());
+
+        assertEquals(
+            "documents/" + result.getDocumentId() + "/source.pdf",
+            metadata.getStorageKey()
+        );
+    }
+
     private void assertObjectDoesNotExist(String storageKey) {
         assertThrows(ErrorResponseException.class, () -> minioClient.statObject(
                 StatObjectArgs.builder()

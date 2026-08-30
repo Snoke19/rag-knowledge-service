@@ -2,6 +2,7 @@ package com.example.ragknowledgeservice.api;
 
 import com.example.ragknowledgeservice.common.DocumentStatus;
 import com.example.ragknowledgeservice.dto.SavedFile;
+import com.example.ragknowledgeservice.entities.DocumentMetadata;
 import com.example.ragknowledgeservice.exception.DocumentNotFoundException;
 import com.example.ragknowledgeservice.exception.GlobalExceptionHandler;
 import com.example.ragknowledgeservice.exception.StorageException;
@@ -278,6 +279,58 @@ public class DocumentControllerTest {
             .andExpect(jsonPath("$.type").value("https://ragknowledgeservice.example.com/problems/document-not-found"))
             .andExpect(jsonPath("$.instance").exists())
             .andExpect(jsonPath("$.exception").doesNotExist());
+
+        verify(documentService).getMetaDataDocument(documentId);
+    }
+
+    @Test
+    void rejectsFileExceedingMaximumSize() throws Exception {
+        byte[] content = new byte[6 * 1024 * 1024];
+
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "large-document.pdf",
+            MediaType.APPLICATION_PDF_VALUE,
+            content
+        );
+
+        mockMvc.perform(multipart("/api/documents").file(file))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verifyNoInteractions(documentService);
+    }
+
+    @Test
+    void returnsDocumentMetadata() throws Exception {
+        UUID documentId = UUID.randomUUID();
+
+        when(documentService.getMetaDataDocument(documentId))
+            .thenReturn(
+                DocumentMetadata.builder()
+                    .documentId(documentId)
+                    .title("company-handbook.pdf")
+                    .contentType("application/pdf")
+                    .size(1024L)
+                    .storageKey("documents/" + documentId + "/source.pdf")
+                    .status(DocumentStatus.UPLOADED)
+                    .contentSha256("abc123")
+                    .build()
+            );
+
+        mockMvc.perform(get("/api/documents/{documentId}", documentId))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(content().json("""
+                {
+                  "documentId": "%s",
+                  "title": "company-handbook.pdf",
+                  "contentType": "application/pdf",
+                  "size": 1024,
+                  "status": "UPLOADED",
+                  "contentSha256": "abc123"
+                }
+                """.formatted(documentId)));
 
         verify(documentService).getMetaDataDocument(documentId);
     }
