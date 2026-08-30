@@ -1,4 +1,4 @@
-package com.example.ragknowledgeservice.service.storage;
+package com.example.ragknowledgeservice.exception;
 
 public class StorageException extends RuntimeException {
 

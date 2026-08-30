@@ -40,4 +40,7 @@ public class DocumentMetadata {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private DocumentStatus status;
+
+    @Column(name = "content_sha256",  nullable = false, length = 64)
+    private String contentSha256;
 }

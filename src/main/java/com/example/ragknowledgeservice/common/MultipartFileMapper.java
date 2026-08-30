@@ -18,9 +18,7 @@ public class MultipartFileMapper {
                 .orElse("unknown")
                 .replace('\\', '/');
 
-            originalFilename = originalFilename.substring(
-                originalFilename.lastIndexOf('/') + 1
-            );
+            originalFilename = originalFilename.substring(originalFilename.lastIndexOf('/') + 1);
 
             return new UploadDocumentCommand(
                 originalFilename,

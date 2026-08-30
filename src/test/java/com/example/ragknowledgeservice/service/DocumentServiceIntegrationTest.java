@@ -2,11 +2,13 @@ package com.example.ragknowledgeservice.service;
 
 import com.example.ragknowledgeservice.command.UploadDocumentCommand;
 import com.example.ragknowledgeservice.common.DocumentStatus;
+import com.example.ragknowledgeservice.common.hasher.ContentHasher;
+import com.example.ragknowledgeservice.common.hasher.Sha256ContentHasher;
 import com.example.ragknowledgeservice.config.MinioStorageProperties;
 import com.example.ragknowledgeservice.dto.SavedFile;
 import com.example.ragknowledgeservice.entities.DocumentMetadata;
+import com.example.ragknowledgeservice.exception.StorageException;
 import com.example.ragknowledgeservice.repositories.DocumentRepository;
-import com.example.ragknowledgeservice.service.storage.StorageException;
 import com.example.ragknowledgeservice.service.storage.StorageTransactionManager;
 import com.example.ragknowledgeservice.service.storage.file_storage.FileStorage;
 import com.example.ragknowledgeservice.service.storage.file_storage.MinioFileStorage;
@@ -187,6 +189,27 @@ public class DocumentServiceIntegrationTest {
         verify(fileStorage).delete(anyString());
     }
 
+    @Test
+    void saveDocument_shouldPersistContentSha256() {
+        String content = "test document content";
+
+        SavedFile result = documentService.saveDocument(new UploadDocumentCommand(
+            "test.pdf",
+            "application/pdf",
+            content.length(),
+            new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        ));
+
+        DocumentMetadata document = documentService.getMetaDataDocument(
+            result.getDocumentId()
+        );
+
+        assertEquals(
+            "8d430eb73472bd0177cf3cd165c9541c775a59f6871cf2a9e736e40584d24b78",
+            document.getContentSha256()
+        );
+    }
+
     private void assertObjectDoesNotExist(String storageKey) {
         assertThrows(ErrorResponseException.class, () -> minioClient.statObject(
                 StatObjectArgs.builder()
@@ -220,9 +243,15 @@ public class DocumentServiceIntegrationTest {
 
         @Bean
         public DocumentService documentService(FileStorage fileStorage,
+                                               ContentHasher contentHasher,
                                                DocumentRepository documentRepository,
                                                StorageTransactionManager storageTransactionManager) {
-            return new DocumentService(fileStorage, documentRepository, storageTransactionManager);
+            return new DocumentService(fileStorage, contentHasher, documentRepository, storageTransactionManager);
+        }
+
+        @Bean
+        public ContentHasher contentHasher() {
+            return new Sha256ContentHasher();
         }
 
         @Bean
