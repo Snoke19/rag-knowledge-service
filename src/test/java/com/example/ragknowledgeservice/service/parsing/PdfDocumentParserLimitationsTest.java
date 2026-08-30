@@ -116,6 +116,22 @@ class PdfDocumentParserLimitationsTest {
         assertThat(pages.getFirst().text()).doesNotContain("Hidden image text");
     }
 
+    @Test
+    void extractsExtendedLatinCharactersFromPdf() throws IOException {
+        UUID documentId = UUID.randomUUID();
+
+        byte[] pdf = createPdf("Résumé München");
+        givenDocument(documentId, pdf, "encoding.pdf");
+
+        List<DocumentPage> pages = parse(documentId);
+
+        assertThat(pages).hasSize(1);
+
+        assertThat(pages.getFirst().text())
+            .contains("Résumé")
+            .contains("München");
+    }
+
     private List<DocumentPage> parse(UUID documentId) {
         DocumentParser parser = new PdfDocumentParserImpl(documentService);
         return parser.parse(documentId);
