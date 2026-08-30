@@ -189,6 +189,27 @@ public class DocumentServiceIntegrationTest {
         verify(fileStorage).delete(anyString());
     }
 
+    @Test
+    void saveDocument_shouldPersistContentSha256() {
+        String content = "test document content";
+
+        SavedFile result = documentService.saveDocument(new UploadDocumentCommand(
+            "test.pdf",
+            "application/pdf",
+            content.length(),
+            new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        ));
+
+        DocumentMetadata document = documentService.getMetaDataDocument(
+            result.getDocumentId()
+        );
+
+        assertEquals(
+            "8d430eb73472bd0177cf3cd165c9541c775a59f6871cf2a9e736e40584d24b78",
+            document.getContentSha256()
+        );
+    }
+
     private void assertObjectDoesNotExist(String storageKey) {
         assertThrows(ErrorResponseException.class, () -> minioClient.statObject(
                 StatObjectArgs.builder()
